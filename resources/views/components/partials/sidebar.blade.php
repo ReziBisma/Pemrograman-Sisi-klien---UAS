@@ -105,6 +105,12 @@
                 class="{{ ($baseLink ?? '') . (request()->routeIs('pasien.daftar') ? $active : $inactive) }}">
                 <i class="fas fa-house-medical w-4 text-center"></i>
                 Pendaftaran Periksa
+            </a> 
+            
+            <a href="{{ route('pasien.transaksi') }}"
+                class="{{ $baseLink }} {{ request()->routeIs('pasien.transaksi*') ? $active : $inactive }}">
+                <i class="fas fa-receipt w-4 text-center"></i>
+                Transaksi
             </a>
 
 

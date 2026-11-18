@@ -6,17 +6,16 @@
             class="flex items-center justify-center w-9 h-9 rounded-lg bg-slate-100 text-slate-500 hover:bg-slate-200 transition">
             <i class="fas fa-arrow-left text-xs"></i>
         </a>
-        <h2 class="text-xl font-bold text-slate-800">
-            Tambah Poli
-        </h2>
+        <h2 class="text-xl font-bold text-slate-800">Tambah Poli</h2>
     </div>
+
+    <div id="alert-area"></div>
 
     {{-- Card --}}
     <div class="card bg-base-100 shadow-md rounded-2xl border border-slate-200">
         <div class="card-body p-7">
 
-            <form action="{{ route('polis.store') }}" method="POST">
-                @csrf
+            <form id="form-poli">
 
                 {{-- Nama Poli --}}
                 <div class="form-control mb-5">
@@ -25,19 +24,9 @@
                             Nama Poli <span class="text-red-500">*</span>
                         </span>
                     </label>
-
-                    <input type="text" name="nama_poli" value="{{ old('nama_poli') }}"
-                        placeholder="Masukkan nama poli..."
-                        class="input input-bordered w-full rounded-lg text-sm @error('nama_poli') input-error @enderror"
-                        required>
-
-                    @error('nama_poli')
-                    <label class="label pt-1">
-                        <span class="label-text-alt text-red-500">
-                            {{ $message }}
-                        </span>
-                    </label>
-                    @enderror
+                    <input type="text" name="nama_poli" placeholder="Masukkan nama poli..."
+                        class="input input-bordered w-full rounded-lg text-sm" required>
+                    <p class="text-xs text-red-500 mt-1" data-error="nama_poli"></p>
                 </div>
 
                 {{-- Keterangan --}}
@@ -47,28 +36,17 @@
                             Keterangan <span class="text-red-500">*</span>
                         </span>
                     </label>
-
                     <textarea name="keterangan" rows="4" placeholder="Masukkan keterangan poli..."
-                        class="textarea textarea-bordered w-full rounded-lg text-sm resize-none @error('keterangan') textarea-error @enderror"
-                        required>{{ old('keterangan') }}</textarea>
-
-                    @error('keterangan')
-                    <label class="label pt-1">
-                        <span class="label-text-alt text-red-500">
-                            {{ $message }}
-                        </span>
-                    </label>
-                    @enderror
+                        class="textarea textarea-bordered w-full rounded-lg text-sm resize-none" required></textarea>
+                    <p class="text-xs text-red-500 mt-1" data-error="keterangan"></p>
                 </div>
 
                 {{-- Buttons --}}
                 <div class="flex gap-3">
-                    <button type="submit"
+                    <button type="submit" id="btn-simpan"
                         class="flex items-center gap-2 px-6 py-2.5 bg-[#2d4499] hover:bg-[#1e2d6b] text-white rounded-lg text-sm font-semibold transition">
-                        <i class="fas fa-save"></i>
-                        Simpan
+                        <i class="fas fa-save"></i> Simpan
                     </button>
-
                     <a href="{{ route('polis.index') }}"
                         class="flex items-center gap-2 px-6 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-500 rounded-lg text-sm font-semibold transition">
                         Batal
@@ -78,5 +56,39 @@
             </form>
         </div>
     </div>
+
+    @push('scripts')
+    <script>
+        const form = document.getElementById('form-poli');
+        const btnSimpan = document.getElementById('btn-simpan');
+
+        // CREATE: POST /api/admin/polis
+        form.addEventListener('submit', async function (e) {
+            e.preventDefault();
+            hapusErrorForm();
+            btnSimpan.disabled = true;
+
+            try {
+                await api('/admin/polis', {
+                    method: 'POST',
+                    body: {
+                        nama_poli: form.nama_poli.value,
+                        keterangan: form.keterangan.value,
+                    },
+                });
+
+                simpanFlash('success', 'Poli berhasil ditambahkan.');
+                window.location.href = "{{ route('polis.index') }}";
+            } catch (err) {
+                if (err.status === 422) {
+                    tampilErrorForm(err.errors);   // error validasi dari API
+                } else {
+                    tampilAlert('error', err.message);
+                }
+                btnSimpan.disabled = false;
+            }
+        });
+    </script>
+    @endpush
 
 </x-layouts.app>

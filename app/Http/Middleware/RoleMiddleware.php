@@ -9,11 +9,17 @@ use Closure;
 
 class RoleMiddleware
 {
-    public function handle(Request $request, Closure $next, $role): Response
+        public function handle(Request $request, Closure $next, $role): Response
     {
-        $user = Auth::user();
+        $user = $request->user();
 
-        if ($user->role !== $role) {
+        if (!$user || $user->role !== $role) {
+            if ($request->expectsJson() || $request->is('api/*')) {
+                return response()->json([
+                    'message' => 'Anda tidak memiliki akses ke resource ini.',
+                ], 403);
+            }
+
             return response('Unauthorized.', 403);
         }
 

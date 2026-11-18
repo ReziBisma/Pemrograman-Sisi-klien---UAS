@@ -10,6 +10,7 @@ use App\Http\Controllers\Dokter\JadwalPeriksaController;
 use App\Http\Controllers\Pasien\PoliController;
 use App\Http\Controllers\Dokter\PeriksaPasienController;
 use App\Http\Controllers\Dokter\RiwayatPasienController;
+use App\Http\Controllers\Pasien\TransaksiController;
 use Illuminate\Support\Facades\Route;
 
 
@@ -29,10 +30,30 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
     Route::get('/dashboard', function () {
         return view('admin.dashboard');
     })->name('admin.dashboard');
-    Route::resource('polis', AdminPoliController::class);
-    Route::resource('dokter', DokterController::class);
-    Route::resource('pasien', PasienController::class);
-    Route::resource('obat', ObatController::class);
+    Route::view('/polis', 'admin.polis.index')->name('polis.index');
+    Route::view('/polis/create', 'admin.polis.create')->name('polis.create');
+    Route::get('/polis/{id}/edit', function ($id) {
+        return view('admin.polis.edit', ['id' => $id]);
+    })->whereNumber('id')->name('polis.edit');
+    Route::view('/obat', 'admin.obat.index')->name('obat.index');
+    Route::view('/obat/create', 'admin.obat.create')->name('obat.create');
+    Route::get('/obat/{id}/edit', function ($id) {
+        return view('admin.obat.edit', ['id' => $id]);
+    })->whereNumber('id')->name('obat.edit');
+
+    // Dokter
+    Route::view('/dokter', 'admin.dokter.index')->name('dokter.index');
+    Route::view('/dokter/create', 'admin.dokter.create')->name('dokter.create');
+    Route::get('/dokter/{id}/edit', function ($id) {
+        return view('admin.dokter.edit', ['id' => $id]);
+    })->whereNumber('id')->name('dokter.edit');
+
+    // Pasien
+    Route::view('/pasien', 'admin.pasien.index')->name('pasien.index');
+    Route::view('/pasien/create', 'admin.pasien.create')->name('pasien.create');
+    Route::get('/pasien/{id}/edit', function ($id) {
+        return view('admin.pasien.edit', ['id' => $id]);
+    })->whereNumber('id')->name('pasien.edit');
 });
 
 
@@ -41,14 +62,24 @@ Route::middleware(['auth', 'role:dokter'])->prefix('dokter')->group(function () 
         return view('dokter.dashboard');
     })->name('dokter.dashboard');
 
-    Route::resource('jadwal-periksa', JadwalPeriksaController::class);
+        // Jadwal periksa
+    Route::view('/jadwal-periksa', 'dokter.jadwal-periksa.index')->name('jadwal-periksa.index');
+    Route::view('/jadwal-periksa/create', 'dokter.jadwal-periksa.create')->name('jadwal-periksa.create');
+    Route::get('/jadwal-periksa/{id}/edit', function ($id) {
+        return view('dokter.jadwal-periksa.edit', ['id' => $id]);
+    })->whereNumber('id')->name('jadwal-periksa.edit');
 
-    Route::get('/periksa-pasien', [PeriksaPasienController::class, 'index'])->name('periksa-pasien.index');
-    Route::post('/periksa-pasien', [PeriksaPasienController::class, 'store'])->name('periksa-pasien.store');
-    Route::get('/periksa-pasien/{id}', [PeriksaPasienController::class, 'create'])->name('periksa-pasien.create');
+    // Periksa pasien
+    Route::view('/periksa-pasien', 'dokter.periksa-pasien.index')->name('periksa-pasien.index');
+    Route::get('/periksa-pasien/{id}', function ($id) {
+        return view('dokter.periksa-pasien.create', ['id' => $id]);
+    })->whereNumber('id')->name('periksa-pasien.create');
 
-    Route::get('/riwayat-pasien', [RiwayatPasienController::class, 'index'])->name('riwayat-pasien.index');
-    Route::get('/riwayat-pasien/{id}', [RiwayatPasienController::class, 'show'])->name('riwayat-pasien.show');
+    // Riwayat pasien
+    Route::view('/riwayat-pasien', 'dokter.riwayat-pasien.index')->name('riwayat-pasien.index');
+    Route::get('/riwayat-pasien/{id}', function ($id) {
+        return view('dokter.riwayat-pasien.show', ['id' => $id]);
+    })->whereNumber('id')->name('riwayat-pasien.show');
 });
 
 
@@ -57,9 +88,12 @@ Route::middleware(['auth', 'role:pasien'])->prefix('pasien')->group(function () 
         return view('pasien.dashboard');
     })->name('pasien.dashboard');
 
-    Route::get('/daftar', [PoliController::class, 'get'])->name('pasien.daftar');
+    // Pendaftaran poli
+    Route::view('/daftar', 'pasien.daftar')->name('pasien.daftar');
 
-    Route::post('/daftar', [PoliController::class, 'submit'])
-        ->name('pasien.daftar.submit');
+    // Transaksi
+    Route::view('/transaksi', 'pasien.transaksi.index')->name('pasien.transaksi');
+    Route::get('/transaksi/{id}', function ($id) {
+        return view('pasien.transaksi.show', ['id' => $id]);
+    })->whereNumber('id')->name('pasien.transaksi.show');
 });
-
