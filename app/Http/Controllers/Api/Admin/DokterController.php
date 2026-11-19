@@ -15,11 +15,21 @@ class DokterController extends Controller
         return User::with('poli')->where('role', 'dokter')->findOrFail($id);
     }
 
-    public function index()
+    public function index(Request $request)
     {
-        return UserResource::collection(
-            User::with('poli')->where('role', 'dokter')->get()
-        );
+        $query = User::with('poli')
+            ->where('role', 'dokter')
+            ->when($request->query('search'), function ($q, $cari) {
+                $q->where(function ($q) use ($cari) {
+                    $q->where('nama', 'like', "%{$cari}%")
+                      ->orWhere('email', 'like', "%{$cari}%")
+                      ->orWhere('no_ktp', 'like', "%{$cari}%");
+                });
+            })
+            ->when($request->query('id_poli'), fn ($q, $nilai) => $q->where('id_poli', $nilai))
+            ->orderBy('nama');
+
+        return $this->halaman($request, $query, UserResource::class);
     }
 
     public function store(Request $request)

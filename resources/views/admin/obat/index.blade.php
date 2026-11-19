@@ -8,6 +8,7 @@
         </a>
     </div>
 
+    <div id="filter-bar"></div>
     <div class="card bg-base-100 shadow-md rounded-2 border">
         <div class="card-body p-0">
             <div class="overflow-x-auto">
@@ -27,37 +28,38 @@
             </div>
         </div>
     </div>
+    <div id="pagination"></div>
 
     @push('scripts')
     <script>
         const EDIT_URL = "{{ route('obat.edit', '__ID__') }}";
-        const tbody = document.getElementById('data-body');
 
-        // READ: GET /api/admin/obat
-        async function muatData() {
-            try {
-                const res = await api('/admin/obat');
-                isiTabel(tbody, res.data, 4, 'Belum ada data obat', function (o) {
-                    return '<tr class="border-t border-slate-100 hover:bg-slate-50 transition">' +
-                        '<td class="px-6 py-4 font-semibold text-slate-800">' + esc(o.nama_obat) + '</td>' +
-                        '<td class="px-6 py-4"><span class="inline-block px-3 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-600">' +
-                            esc(o.kemasan || '-') + '</span></td>' +
-                        '<td class="px-6 py-4 font-semibold text-slate-800">' + formatRupiah(o.harga) + '</td>' +
-                        tombolAksi(EDIT_URL, 'hapusObat', o.id) +
-                        '</tr>';
-                });
-            } catch (err) {
-                tampilAlert('error', err.message);
-            }
-        }
+        const tabel = tabelBerhalaman({
+            url: '/admin/obat',
+            kolom: 4,
+            pesanKosong: 'Belum ada data obat',
+            cari: 'Cari nama atau kemasan obat...',
+            filter: [
+                { nama: 'harga_min', label: 'Harga minimum', jenis: 'angka' },
+                { nama: 'harga_max', label: 'Harga maksimum', jenis: 'angka' },
+            ],
+            baris: function (o) {
+                return '<tr class="border-t border-slate-100 hover:bg-slate-50 transition">' +
+                    '<td class="px-6 py-4 font-semibold text-slate-800">' + esc(o.nama_obat) + '</td>' +
+                    '<td class="px-6 py-4"><span class="inline-block px-3 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-600">' +
+                        esc(o.kemasan || '-') + '</span></td>' +
+                    '<td class="px-6 py-4 font-semibold text-slate-800">' + formatRupiah(o.harga) + '</td>' +
+                    tombolAksi(EDIT_URL, 'hapusObat', o.id) +
+                    '</tr>';
+            },
+        });
 
         // DELETE: DELETE /api/admin/obat/{id}
         function hapusObat(id) {
-            hapusData('/admin/obat/' + id, 'Yakin ingin menghapus obat ini?', muatData);
+            hapusData('/admin/obat/' + id, 'Yakin ingin menghapus obat ini?', tabel.muat);
         }
 
         bacaFlash();
-        muatData();
     </script>
     @endpush
 

@@ -4,6 +4,7 @@
         <h2 class="text-2xl font-bold text-slate-800">Riwayat Pasien</h2>
     </div>
 
+    <div id="filter-bar"></div>
     <div class="card bg-base-100 shadow-md rounded-2 border">
         <div class="card-body p-0">
             <div class="overflow-x-auto">
@@ -25,35 +26,35 @@
             </div>
         </div>
     </div>
+    <div id="pagination"></div>
 
     @push('scripts')
     <script>
         const DETAIL_URL = "{{ route('riwayat-pasien.show', '__ID__') }}";
-        const tbody = document.getElementById('data-body');
 
-        // READ: GET /api/dokter/riwayat-pasien
-        async function muatData() {
-            try {
-                const res = await api('/dokter/riwayat-pasien');
-                isiTabel(tbody, res.data, 6, 'Belum ada riwayat pemeriksaan', function (r) {
-                    return '<tr class="hover:bg-slate-50 transition">' +
-                        '<td class="px-6 py-4 text-slate-500">' + esc(r.no_antrian) + '</td>' +
-                        '<td class="px-6 py-4 font-semibold text-slate-800">' + esc(r.pasien ? r.pasien.nama : '-') + '</td>' +
-                        '<td class="px-6 py-4 text-slate-500">' + esc(r.keluhan || '-') + '</td>' +
-                        '<td class="px-6 py-4 text-slate-500">' + formatTanggal(r.tgl_periksa) + '</td>' +
-                        '<td class="px-6 py-4 text-slate-500">' + formatRupiah(r.biaya_periksa) + '</td>' +
-                        '<td class="px-6 py-4 text-right">' +
-                            '<a href="' + DETAIL_URL.replace('__ID__', r.id) + '" ' +
-                            'class="btn btn-sm bg-blue-500 hover:bg-blue-600 text-white border-none rounded-lg px-4">' +
-                            '<i class="fas fa-eye"></i> Detail</a>' +
-                        '</td></tr>';
-                });
-            } catch (err) {
-                tampilAlert('error', err.message);
-            }
-        }
-
-        muatData();
+        const tabel = tabelBerhalaman({
+            url: '/dokter/riwayat-pasien',
+            kolom: 6,
+            pesanKosong: 'Belum ada riwayat pemeriksaan',
+            cari: 'Cari nama pasien atau keluhan...',
+            filter: [
+                { nama: 'dari', label: 'Dari tanggal', jenis: 'tanggal' },
+                { nama: 'sampai', label: 'Sampai tanggal', jenis: 'tanggal' },
+            ],
+            baris: function (r) {
+                return '<tr class="hover:bg-slate-50 transition">' +
+                    '<td class="px-6 py-4 text-slate-500">' + esc(r.no_antrian) + '</td>' +
+                    '<td class="px-6 py-4 font-semibold text-slate-800">' + esc(r.pasien ? r.pasien.nama : '-') + '</td>' +
+                    '<td class="px-6 py-4 text-slate-500">' + esc(r.keluhan || '-') + '</td>' +
+                    '<td class="px-6 py-4 text-slate-500">' + formatTanggal(r.tgl_periksa) + '</td>' +
+                    '<td class="px-6 py-4 text-slate-500">' + formatRupiah(r.biaya_periksa) + '</td>' +
+                    '<td class="px-6 py-4 text-right">' +
+                        '<a href="' + DETAIL_URL.replace('__ID__', r.id) + '" ' +
+                        'class="btn btn-sm bg-blue-500 hover:bg-blue-600 text-white border-none rounded-lg px-4">' +
+                        '<i class="fas fa-eye"></i> Detail</a>' +
+                    '</td></tr>';
+            },
+        });
     </script>
     @endpush
 

@@ -17,6 +17,7 @@
     <div id="alert-area"></div>
 
     {{-- Card --}}
+    <div id="filter-bar"></div>
     <div class="card bg-base-100 shadow-md rounded-2 border">
         <div class="card-body p-0">
             <div class="overflow-x-auto">
@@ -39,70 +40,33 @@
             </div>
         </div>
     </div>
+    <div id="pagination"></div>
 
     @push('scripts')
     <script>
         const EDIT_URL = "{{ route('polis.edit', '__ID__') }}";
-        const tbody = document.getElementById('poli-body');
 
-        const BARIS_KOSONG =
-            '<tr><td colspan="3" class="text-center py-14 text-slate-400">' +
-            '<i class="fas fa-inbox text-3xl mb-3 block"></i>Belum ada data poli</td></tr>';
-
-        // READ: GET /api/admin/polis
-        async function muatPoli() {
-            try {
-                const res = await api('/admin/polis');
-                tampilTabel(res.data);
-            } catch (err) {
-                tampilAlert('error', err.message);
-                tbody.innerHTML =
-                    '<tr><td colspan="3" class="text-center py-14 text-red-400">Gagal memuat data</td></tr>';
-            }
-        }
-
-        function tampilTabel(polis) {
-            if (polis.length === 0) {
-                tbody.innerHTML = BARIS_KOSONG;
-                return;
-            }
-
-            tbody.innerHTML = polis.map(function (p) {
-                return `
-                <tr class="hover:bg-slate-50 transition">
-                    <td class="px-6 py-4 font-semibold text-slate-800">${esc(p.nama_poli)}</td>
-                    <td class="px-6 py-4 text-slate-500">${esc(p.keterangan)}</td>
-                    <td class="px-6 py-4 text-right">
-                        <div class="flex justify-end gap-2">
-                            <a href="${EDIT_URL.replace('__ID__', p.id)}"
-                                class="btn btn-sm bg-amber-500 hover:bg-amber-600 text-white border-none rounded-lg px-4">
-                                <i class="fas fa-pen-to-square"></i> Edit
-                            </a>
-                            <button type="button" onclick="hapusPoli(${p.id})"
-                                class="btn btn-sm bg-red-500 hover:bg-red-600 text-white border-none rounded-lg px-4">
-                                <i class="fas fa-trash"></i> Hapus
-                            </button>
-                        </div>
-                    </td>
-                </tr>`;
-            }).join('');
-        }
+        const tabel = tabelBerhalaman({
+            tbody: 'poli-body',
+            url: '/admin/polis',
+            kolom: 3,
+            pesanKosong: 'Belum ada data poli',
+            cari: 'Cari nama atau keterangan poli...',
+            baris: function (p) {
+                return '<tr class="hover:bg-slate-50 transition">' +
+                    '<td class="px-6 py-4 font-semibold text-slate-800">' + esc(p.nama_poli) + '</td>' +
+                    '<td class="px-6 py-4 text-slate-500">' + esc(p.keterangan) + '</td>' +
+                    tombolAksi(EDIT_URL, 'hapusPoli', p.id) +
+                    '</tr>';
+            },
+        });
 
         // DELETE: DELETE /api/admin/polis/{id}
-        async function hapusPoli(id) {
-            if (!confirm('Yakin ingin menghapus poli ini?')) return;
-
-            try {
-                const res = await api('/admin/polis/' + id, { method: 'DELETE' });
-                tampilAlert('success', res.message);
-                muatPoli();
-            } catch (err) {
-                tampilAlert('error', err.message);
-            }
+        function hapusPoli(id) {
+            hapusData('/admin/polis/' + id, 'Yakin ingin menghapus poli ini?', tabel.muat);
         }
 
-        bacaFlash();  // notifikasi dari halaman create/edit
-        muatPoli();
+        bacaFlash();
     </script>
     @endpush
 

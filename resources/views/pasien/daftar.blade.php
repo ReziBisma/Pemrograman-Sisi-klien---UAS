@@ -72,6 +72,7 @@
                     </div>
                 </div>
             </div>
+            <div id="pagination"></div>
 
         </div>
     </div>
@@ -126,28 +127,27 @@
             }
         }
 
-        // READ riwayat: GET /api/pasien/pendaftaran
-        async function muatRiwayat() {
-            try {
-                const res = await api('/pasien/pendaftaran');
-                isiTabel(document.getElementById('riwayat-body'), res.data, 5, 'Belum ada pendaftaran', function (d) {
-                    const j = d.jadwal;
-                    const dokter = j && j.dokter ? j.dokter : null;
-                    const status = d.sudah_diperiksa
-                        ? '<span class="badge bg-green-100 text-green-700 border border-green-200 rounded-lg px-3 py-1 text-xs font-semibold">Sudah Diperiksa</span>'
-                        : '<span class="badge bg-amber-100 text-amber-700 border border-amber-200 rounded-lg px-3 py-1 text-xs font-semibold">Menunggu</span>';
+                // READ riwayat: GET /api/pasien/pendaftaran (per halaman)
+        const tabelRiwayat = tabelBerhalaman({
+            tbody: 'riwayat-body',
+            url: '/pasien/pendaftaran',
+            kolom: 5,
+            pesanKosong: 'Belum ada pendaftaran',
+            baris: function (d) {
+                const j = d.jadwal;
+                const dokter = j && j.dokter ? j.dokter : null;
+                const status = d.sudah_diperiksa
+                    ? '<span class="badge bg-green-100 text-green-700 border border-green-200 rounded-lg px-3 py-1 text-xs font-semibold">Sudah Diperiksa</span>'
+                    : '<span class="badge bg-amber-100 text-amber-700 border border-amber-200 rounded-lg px-3 py-1 text-xs font-semibold">Menunggu</span>';
 
-                    return '<tr class="hover:bg-slate-50 transition">' +
-                        '<td class="px-6 py-3">' + esc(j ? j.hari + ' ' + j.jam_mulai + ' - ' + j.jam_selesai : '-') + '</td>' +
-                        '<td class="px-6 py-3 font-semibold text-slate-800">' + esc(dokter ? dokter.nama : '-') + '</td>' +
-                        '<td class="px-6 py-3">' + esc(dokter && dokter.poli ? dokter.poli.nama_poli : '-') + '</td>' +
-                        '<td class="px-6 py-3">' + esc(d.no_antrian) + '</td>' +
-                        '<td class="px-6 py-3">' + status + '</td></tr>';
-                });
-            } catch (err) {
-                tampilAlert('error', err.message);
-            }
-        }
+                return '<tr class="hover:bg-slate-50 transition">' +
+                    '<td class="px-6 py-3">' + esc(j ? j.hari + ' ' + j.jam_mulai + ' - ' + j.jam_selesai : '-') + '</td>' +
+                    '<td class="px-6 py-3 font-semibold text-slate-800">' + esc(dokter ? dokter.nama : '-') + '</td>' +
+                    '<td class="px-6 py-3">' + esc(dokter && dokter.poli ? dokter.poli.nama_poli : '-') + '</td>' +
+                    '<td class="px-6 py-3">' + esc(d.no_antrian) + '</td>' +
+                    '<td class="px-6 py-3">' + status + '</td></tr>';
+            },
+        });
 
         // CREATE: POST /api/pasien/pendaftaran (id pasien diambil server dari login)
         form.addEventListener('submit', async function (e) {

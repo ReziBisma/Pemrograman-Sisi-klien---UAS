@@ -23,9 +23,18 @@ class RiwayatPasienController extends Controller
 
     public function index(Request $request)
     {
-        return PeriksaResource::collection(
-            $this->query($request)->orderByDesc('tgl_periksa')->get()
-        );
+        $query = $this->query($request)
+            ->when($request->query('search'), function ($q, $cari) {
+                $q->whereHas('daftarPoli', function ($d) use ($cari) {
+                    $d->where('keluhan', 'like', "%{$cari}%")
+                      ->orWhereHas('pasien', fn ($p) => $p->where('nama', 'like', "%{$cari}%"));
+                });
+            })
+            ->when($request->query('dari'), fn ($q, $tgl) => $q->whereDate('tgl_periksa', '>=', $tgl))
+            ->when($request->query('sampai'), fn ($q, $tgl) => $q->whereDate('tgl_periksa', '<=', $tgl))
+            ->orderByDesc('tgl_periksa');
+
+        return $this->halaman($request, $query, PeriksaResource::class);
     }
 
     public function show(Request $request, string $id)

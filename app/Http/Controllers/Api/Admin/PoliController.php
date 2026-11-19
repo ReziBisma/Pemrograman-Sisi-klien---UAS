@@ -9,9 +9,18 @@ use Illuminate\Http\Request;
 
 class PoliController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        return PoliResource::collection(Poli::all());
+        $query = Poli::query()
+            ->when($request->query('search'), function ($q, $cari) {
+                $q->where(function ($q) use ($cari) {
+                    $q->where('nama_poli', 'like', "%{$cari}%")
+                      ->orWhere('keterangan', 'like', "%{$cari}%");
+                });
+            })
+            ->orderBy('nama_poli');
+
+        return $this->halaman($request, $query, PoliResource::class);
     }
 
     public function store(Request $request)
@@ -49,4 +58,6 @@ class PoliController extends Controller
 
         return response()->json(['message' => 'Poli berhasil dihapus.']);
     }
+
+    
 }

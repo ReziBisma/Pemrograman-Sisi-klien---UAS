@@ -13,14 +13,19 @@ use App\Http\Controllers\Api\Pasien\TransaksiController;
 use Illuminate\Support\Facades\Route;
 
 // ===== Publik =====
-Route::post('/register', [AuthController::class, 'register'])->name('api.register');
-Route::post('/login', [AuthController::class, 'login'])->name('api.login');
+// ===== Publik =====
+Route::post('/register', [AuthController::class, 'register'])
+    ->middleware('throttle:api-login')->name('api.register');
+Route::post('/login', [AuthController::class, 'login'])
+    ->middleware('throttle:api-login')->name('api.login');
 
-// ===== Harus login (token Sanctum) =====
-Route::middleware('auth:sanctum')->name('api.')->group(function () {
+// ===== Harus login (token Sanctum atau sesi web) =====
+Route::middleware(['auth:sanctum', 'throttle:api-pengguna'])->name('api.')->group(function () {
+    // ... isi grup tidak berubah
 
     Route::get('/me', [AuthController::class, 'me'])->name('me');
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+    Route::post('/logout-semua', [AuthController::class, 'logoutSemua'])->name('logout-semua');
 
     // ----- Admin -----
     Route::middleware('role:admin')->prefix('admin')->name('admin.')->group(function () {

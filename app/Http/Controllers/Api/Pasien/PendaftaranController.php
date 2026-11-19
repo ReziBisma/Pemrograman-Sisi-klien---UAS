@@ -27,12 +27,13 @@ class PendaftaranController extends Controller
     // Riwayat pendaftaran milik pasien yang login
     public function index(Request $request)
     {
-        $daftar = DaftarPoli::with(['jadwalPeriksa.dokter.poli', 'periksas'])
+        $query = DaftarPoli::with(['jadwalPeriksa.dokter.poli', 'periksas'])
             ->where('id_pasien', $request->user()->id)
-            ->latest()
-            ->get();
+            ->when($request->query('status') === 'menunggu', fn ($q) => $q->whereDoesntHave('periksas'))
+            ->when($request->query('status') === 'sudah', fn ($q) => $q->whereHas('periksas'))
+            ->latest('id');
 
-        return DaftarPoliResource::collection($daftar);
+        return $this->halaman($request, $query, DaftarPoliResource::class);
     }
 
     // Daftar ke sebuah jadwal

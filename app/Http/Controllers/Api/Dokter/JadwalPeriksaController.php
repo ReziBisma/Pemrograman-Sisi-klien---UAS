@@ -27,14 +27,18 @@ class JadwalPeriksaController extends Controller
         return JadwalPeriksa::where('id_dokter', $request->user()->id)->findOrFail($id);
     }
 
-    public function index(Request $request)
+        public function index(Request $request)
     {
-        $jadwals = JadwalPeriksa::where('id_dokter', $request->user()->id)
-            ->get()
-            ->sortBy(fn ($j) => array_search($j->hari, self::HARI)) // Senin..Minggu
-            ->values();
+        $urutanHari = "CASE hari WHEN 'Senin' THEN 1 WHEN 'Selasa' THEN 2 WHEN 'Rabu' THEN 3 "
+            . "WHEN 'Kamis' THEN 4 WHEN 'Jumat' THEN 5 WHEN 'Sabtu' THEN 6 ELSE 7 END";
 
-        return JadwalPeriksaResource::collection($jadwals);
+        $query = JadwalPeriksa::where('id_dokter', $request->user()->id)
+            ->when($request->query('hari'), fn ($q, $nilai) => $q->where('hari', $nilai))
+            ->when($request->query('status'), fn ($q, $nilai) => $q->where('status', $nilai))
+            ->orderByRaw($urutanHari)
+            ->orderBy('jam_mulai');
+
+        return $this->halaman($request, $query, JadwalPeriksaResource::class);
     }
 
     public function store(Request $request)

@@ -15,9 +15,20 @@ class PasienController extends Controller
         return User::where('role', 'pasien')->findOrFail($id);
     }
 
-    public function index()
+    public function index(Request $request)
     {
-        return UserResource::collection(User::where('role', 'pasien')->get());
+        $query = User::where('role', 'pasien')
+            ->when($request->query('search'), function ($q, $cari) {
+                $q->where(function ($q) use ($cari) {
+                    $q->where('nama', 'like', "%{$cari}%")
+                      ->orWhere('email', 'like', "%{$cari}%")
+                      ->orWhere('no_ktp', 'like', "%{$cari}%")
+                      ->orWhere('no_rm', 'like', "%{$cari}%");
+                });
+            })
+            ->orderBy('nama');
+
+        return $this->halaman($request, $query, UserResource::class);
     }
 
     public function store(Request $request)

@@ -8,6 +8,7 @@
         </a>
     </div>
 
+    <div id="filter-bar"></div>
     <div class="card bg-base-100 shadow-md rounded-2 border">
         <div class="card-body p-0">
             <div class="overflow-x-auto">
@@ -29,38 +30,35 @@
             </div>
         </div>
     </div>
+    <div id="pagination"></div>
 
     @push('scripts')
     <script>
         const EDIT_URL = "{{ route('pasien.edit', '__ID__') }}";
-        const tbody = document.getElementById('data-body');
 
-        // READ: GET /api/admin/pasien
-        async function muatData() {
-            try {
-                const res = await api('/admin/pasien');
-                isiTabel(tbody, res.data, 6, 'Belum ada data pasien', function (p) {
-                    return '<tr class="border-t border-slate-100 hover:bg-slate-50 transition">' +
-                        '<td class="px-6 py-4 font-semibold text-slate-800">' + esc(p.nama) + '</td>' +
-                        '<td class="px-6 py-4">' + esc(p.email) + '</td>' +
-                        '<td class="px-6 py-4">' + esc(p.no_ktp || '-') + '</td>' +
-                        '<td class="px-6 py-4">' + esc(p.no_hp || '-') + '</td>' +
-                        '<td class="px-6 py-4">' + esc(p.alamat || '-') + '</td>' +
-                        tombolAksi(EDIT_URL, 'hapusPasien', p.id) +
-                        '</tr>';
-                });
-            } catch (err) {
-                tampilAlert('error', err.message);
-            }
-        }
+        const tabel = tabelBerhalaman({
+            url: '/admin/pasien',
+            kolom: 6,
+            pesanKosong: 'Belum ada data pasien',
+            cari: 'Cari nama, email, No. KTP, atau No. RM...',
+            baris: function (p) {
+                return '<tr class="border-t border-slate-100 hover:bg-slate-50 transition">' +
+                    '<td class="px-6 py-4 font-semibold text-slate-800">' + esc(p.nama) + '</td>' +
+                    '<td class="px-6 py-4">' + esc(p.email) + '</td>' +
+                    '<td class="px-6 py-4">' + esc(p.no_ktp || '-') + '</td>' +
+                    '<td class="px-6 py-4">' + esc(p.no_hp || '-') + '</td>' +
+                    '<td class="px-6 py-4">' + esc(p.alamat || '-') + '</td>' +
+                    tombolAksi(EDIT_URL, 'hapusPasien', p.id) +
+                    '</tr>';
+            },
+        });
 
         // DELETE: DELETE /api/admin/pasien/{id}
         function hapusPasien(id) {
-            hapusData('/admin/pasien/' + id, 'Yakin ingin menghapus pasien ini?', muatData);
+            hapusData('/admin/pasien/' + id, 'Yakin ingin menghapus pasien ini?', tabel.muat);
         }
 
         bacaFlash();
-        muatData();
     </script>
     @endpush
 

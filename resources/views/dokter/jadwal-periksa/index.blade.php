@@ -8,6 +8,7 @@
         </a>
     </div>
 
+    <div id="filter-bar"></div>
     <div class="card bg-base-100 shadow-md rounded-2 border">
         <div class="card-body p-0">
             <div class="overflow-x-auto">
@@ -29,41 +30,48 @@
             </div>
         </div>
     </div>
+    <div id="pagination"></div>
 
     @push('scripts')
     <script>
         const EDIT_URL = "{{ route('jadwal-periksa.edit', '__ID__') }}";
-        const tbody = document.getElementById('data-body');
 
-        // READ: GET /api/dokter/jadwal-periksa (hanya jadwal milik dokter yang login)
-        async function muatData() {
-            try {
-                const res = await api('/dokter/jadwal-periksa');
-                isiTabel(tbody, res.data, 6, 'Belum ada Jadwal Periksa', function (j) {
-                    const aktif = j.status === 'Aktif';
-                    return '<tr class="hover:bg-slate-50 transition">' +
-                        '<td class="px-6 py-4 text-slate-500">' + j.id + '</td>' +
-                        '<td class="px-6 py-4 font-semibold text-slate-800">' + esc(j.hari) + '</td>' +
-                        '<td class="px-6 py-4 text-slate-500">' + esc(j.jam_mulai) + '</td>' +
-                        '<td class="px-6 py-4 text-slate-500">' + esc(j.jam_selesai) + '</td>' +
-                        '<td class="px-6 py-4"><span class="px-3 py-1 rounded-full text-xs font-semibold ' +
-                            (aktif ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-500') + '">' +
-                            esc(j.status) + '</span></td>' +
-                        tombolAksi(EDIT_URL, 'hapusJadwal', j.id) +
-                        '</tr>';
-                });
-            } catch (err) {
-                tampilAlert('error', err.message);
-            }
-        }
+        const tabel = tabelBerhalaman({
+            url: '/dokter/jadwal-periksa',
+            kolom: 6,
+            pesanKosong: 'Belum ada Jadwal Periksa',
+            filter: [
+                { nama: 'hari', label: 'Semua Hari', pilihan: [
+                    { nilai: 'Senin', teks: 'Senin' }, { nilai: 'Selasa', teks: 'Selasa' },
+                    { nilai: 'Rabu', teks: 'Rabu' }, { nilai: 'Kamis', teks: 'Kamis' },
+                    { nilai: 'Jumat', teks: 'Jumat' }, { nilai: 'Sabtu', teks: 'Sabtu' },
+                    { nilai: 'Minggu', teks: 'Minggu' },
+                ] },
+                { nama: 'status', label: 'Semua Status', pilihan: [
+                    { nilai: 'Aktif', teks: 'Aktif' }, { nilai: 'Tidak Aktif', teks: 'Tidak Aktif' },
+                ] },
+            ],
+            baris: function (j) {
+                const aktif = j.status === 'Aktif';
+                return '<tr class="hover:bg-slate-50 transition">' +
+                    '<td class="px-6 py-4 text-slate-500">' + j.id + '</td>' +
+                    '<td class="px-6 py-4 font-semibold text-slate-800">' + esc(j.hari) + '</td>' +
+                    '<td class="px-6 py-4 text-slate-500">' + esc(j.jam_mulai) + '</td>' +
+                    '<td class="px-6 py-4 text-slate-500">' + esc(j.jam_selesai) + '</td>' +
+                    '<td class="px-6 py-4"><span class="px-3 py-1 rounded-full text-xs font-semibold ' +
+                        (aktif ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-500') + '">' +
+                        esc(j.status) + '</span></td>' +
+                    tombolAksi(EDIT_URL, 'hapusJadwal', j.id) +
+                    '</tr>';
+            },
+        });
 
         // DELETE: DELETE /api/dokter/jadwal-periksa/{id}
         function hapusJadwal(id) {
-            hapusData('/dokter/jadwal-periksa/' + id, 'Yakin ingin menghapus Data Jadwal Periksa ini?', muatData);
+            hapusData('/dokter/jadwal-periksa/' + id, 'Yakin ingin menghapus Data Jadwal Periksa ini?', tabel.muat);
         }
 
         bacaFlash();
-        muatData();
     </script>
     @endpush
 

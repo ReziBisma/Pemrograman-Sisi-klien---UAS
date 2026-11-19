@@ -18,14 +18,21 @@ class PeriksaPasienController extends Controller
     // Pasien yang mendaftar ke jadwal dokter ini, urut nomor antrian
     public function index(Request $request)
     {
-        $daftar = DaftarPoli::with(['pasien', 'jadwalPeriksa', 'periksas'])
+        $query = DaftarPoli::with(['pasien', 'jadwalPeriksa', 'periksas'])
             ->whereHas('jadwalPeriksa', function ($q) use ($request) {
                 $q->where('id_dokter', $request->user()->id);
             })
-            ->orderBy('no_antrian')
-            ->get();
+            ->when($request->query('search'), function ($q, $cari) {
+                $q->where(function ($q) use ($cari) {
+                    $q->where('keluhan', 'like', "%{$cari}%")
+                      ->orWhereHas('pasien', fn ($p) => $p->where('nama', 'like', "%{$cari}%"));
+                });
+            })
+            ->when($request->query('status') === 'belum', fn ($q) => $q->whereDoesntHave('periksas'))
+            ->when($request->query('status') === 'sudah', fn ($q) => $q->whereHas('periksas'))
+            ->orderBy('no_antrian');
 
-        return DaftarPoliResource::collection($daftar);
+        return $this->halaman($request, $query, DaftarPoliResource::class);
     }
 
     // Simpan hasil pemeriksaan + resep obat

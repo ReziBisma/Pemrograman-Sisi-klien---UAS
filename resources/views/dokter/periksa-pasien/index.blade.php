@@ -4,6 +4,7 @@
         <h2 class="text-2xl font-bold text-slate-800">Periksa Pasien</h2>
     </div>
 
+    <div id="filter-bar"></div>
     <div class="card bg-base-100 shadow-md rounded-2 border">
         <div class="card-body p-0">
             <div class="overflow-x-auto">
@@ -24,43 +25,42 @@
             </div>
         </div>
     </div>
+    <div id="pagination"></div>
 
     @push('scripts')
     <script>
         const PERIKSA_URL = "{{ route('periksa-pasien.create', '__ID__') }}";
-        const tbody = document.getElementById('data-body');
 
-        // READ: GET /api/dokter/periksa-pasien
-        async function muatData() {
-            try {
-                const res = await api('/dokter/periksa-pasien');
-                let nomor = 0;
+        const tabel = tabelBerhalaman({
+            url: '/dokter/periksa-pasien',
+            kolom: 5,
+            pesanKosong: 'Tidak ada data pasien periksa',
+            cari: 'Cari nama pasien atau keluhan...',
+            filter: [
+                { nama: 'status', label: 'Semua Status', pilihan: [
+                    { nilai: 'belum', teks: 'Belum diperiksa' },
+                    { nilai: 'sudah', teks: 'Sudah diperiksa' },
+                ] },
+            ],
+            baris: function (dp, nomor) {
+                const aksi = dp.sudah_diperiksa
+                    ? '<span class="badge bg-green-100 text-green-700 border border-green-200 rounded-lg px-3 py-1 text-xs font-semibold">' +
+                      '<i class="fas fa-circle-check mr-1"></i>Sudah Diperiksa</span>'
+                    : '<a href="' + PERIKSA_URL.replace('__ID__', dp.id) + '" ' +
+                      'class="btn btn-sm bg-amber-500 hover:bg-amber-600 text-white border-none rounded-lg px-4">' +
+                      '<i class="fas fa-stethoscope"></i> Periksa</a>';
 
-                isiTabel(tbody, res.data, 5, 'Tidak ada data pasien periksa', function (dp) {
-                    nomor++;
-
-                    const aksi = dp.sudah_diperiksa
-                        ? '<span class="badge bg-green-100 text-green-700 border border-green-200 rounded-lg px-3 py-1 text-xs font-semibold">' +
-                          '<i class="fas fa-circle-check mr-1"></i>Sudah Diperiksa</span>'
-                        : '<a href="' + PERIKSA_URL.replace('__ID__', dp.id) + '" ' +
-                          'class="btn btn-sm bg-amber-500 hover:bg-amber-600 text-white border-none rounded-lg px-4">' +
-                          '<i class="fas fa-stethoscope"></i> Periksa</a>';
-
-                    return '<tr class="hover:bg-slate-50 transition">' +
-                        '<td class="px-6 py-4 text-slate-500">' + nomor + '</td>' +
-                        '<td class="px-6 py-4 font-semibold text-slate-800">' + esc(dp.pasien ? dp.pasien.nama : '-') + '</td>' +
-                        '<td class="px-6 py-4 text-slate-500">' + esc(dp.keluhan || '-') + '</td>' +
-                        '<td class="px-6 py-4 text-slate-500">' + esc(dp.no_antrian) + '</td>' +
-                        '<td class="px-6 py-4 text-right">' + aksi + '</td>' +
-                        '</tr>';
-                });
-            } catch (err) {
-                tampilAlert('error', err.message);
-            }
-        }
+                return '<tr class="hover:bg-slate-50 transition">' +
+                    '<td class="px-6 py-4 text-slate-500">' + nomor + '</td>' +
+                    '<td class="px-6 py-4 font-semibold text-slate-800">' + esc(dp.pasien ? dp.pasien.nama : '-') + '</td>' +
+                    '<td class="px-6 py-4 text-slate-500">' + esc(dp.keluhan || '-') + '</td>' +
+                    '<td class="px-6 py-4 text-slate-500">' + esc(dp.no_antrian) + '</td>' +
+                    '<td class="px-6 py-4 text-right">' + aksi + '</td>' +
+                    '</tr>';
+            },
+        });
 
         bacaFlash();
-        muatData();
     </script>
     @endpush
 

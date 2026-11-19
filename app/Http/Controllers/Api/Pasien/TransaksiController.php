@@ -23,16 +23,30 @@ class TransaksiController extends Controller
             });
     }
 
+        // Query dasar tanpa eager loading (ringan), hanya milik pasien yang login
+    private function dasar(Request $request)
+    {
+        return Periksa::whereHas('daftarPoli', function ($q) use ($request) {
+            $q->where('id_pasien', $request->user()->id);
+        });
+    }
+
     public function index(Request $request)
     {
-        $transaksis = $this->query($request)->orderByDesc('tgl_periksa')->get();
+        // Seluruh transaksi pasien (tanpa filter) untuk menentukan status lunas dan total tagihan
+        $semua      = $this->dasar($request)->get(['id', 'biaya_periksa']);
+        $lunasIds   = $semua->filter(fn ($t) => $t->sudahDibayar())->pluck('id');
+        $totalBelum = (int) $semua->whereNotIn('id', $lunasIds)->sum('biaya_periksa');
 
-        return response()->json([
-            'total_belum_dibayar' => (int) $transaksis
-                ->filter(fn ($t) => !$t->sudahDibayar())
-                ->sum('biaya_periksa'),
-            'data' => PeriksaResource::collection($transaksis),
-        ]);
+        $query = $this->query($request)
+            ->when($request->query('status') === 'lunas', fn ($q) => $q->whereIn('id', $lunasIds))
+            ->when($request->query('status') === 'belum', fn ($q) => $q->whereNotIn('id', $lunasIds))
+            ->when($request->query('dari'), fn ($q, $tgl) => $q->whereDate('tgl_periksa', '>=', $tgl))
+            ->when($request->query('sampai'), fn ($q, $tgl) => $q->whereDate('tgl_periksa', '<=', $tgl))
+            ->orderByDesc('tgl_periksa');
+
+        return $this->halaman($request, $query, PeriksaResource::class)
+            ->additional(['total_belum_dibayar' => $totalBelum]);
     }
 
     public function show(Request $request, string $id)

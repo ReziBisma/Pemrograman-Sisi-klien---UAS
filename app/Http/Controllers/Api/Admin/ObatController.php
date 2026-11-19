@@ -18,9 +18,20 @@ class ObatController extends Controller
         ];
     }
 
-    public function index()
+    public function index(Request $request)
     {
-        return ObatResource::collection(Obat::all());
+        $query = Obat::query()
+            ->when($request->query('search'), function ($q, $cari) {
+                $q->where(function ($q) use ($cari) {
+                    $q->where('nama_obat', 'like', "%{$cari}%")
+                      ->orWhere('kemasan', 'like', "%{$cari}%");
+                });
+            })
+            ->when($request->query('harga_min'), fn ($q, $nilai) => $q->where('harga', '>=', (int) $nilai))
+            ->when($request->query('harga_max'), fn ($q, $nilai) => $q->where('harga', '<=', (int) $nilai))
+            ->orderBy('nama_obat');
+
+        return $this->halaman($request, $query, ObatResource::class);
     }
 
     public function store(Request $request)

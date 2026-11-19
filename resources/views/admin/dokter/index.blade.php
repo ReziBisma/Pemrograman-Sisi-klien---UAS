@@ -8,6 +8,7 @@
         </a>
     </div>
 
+    <div id="filter-bar"></div>
     <div class="card bg-base-100 shadow-md rounded-2 border">
         <div class="card-body p-0">
             <div class="overflow-x-auto">
@@ -30,40 +31,41 @@
             </div>
         </div>
     </div>
+    <div id="pagination"></div>
 
     @push('scripts')
     <script>
         const EDIT_URL = "{{ route('dokter.edit', '__ID__') }}";
-        const tbody = document.getElementById('data-body');
 
-        // READ: GET /api/admin/dokter
-        async function muatData() {
-            try {
-                const res = await api('/admin/dokter');
-                isiTabel(tbody, res.data, 7, 'Belum ada data dokter', function (d) {
-                    return '<tr class="border-b border-slate-100 hover:bg-slate-50 transition">' +
-                        '<td class="px-6 py-4 font-semibold text-slate-800">' + esc(d.nama) + '</td>' +
-                        '<td class="px-6 py-4">' + esc(d.email) + '</td>' +
-                        '<td class="px-6 py-4">' + esc(d.no_ktp || '-') + '</td>' +
-                        '<td class="px-6 py-4">' + esc(d.no_hp || '-') + '</td>' +
-                        '<td class="px-6 py-4">' + esc(d.alamat || '-') + '</td>' +
-                        '<td class="px-6 py-4"><span class="px-3 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-700">' +
-                            esc(d.poli ? d.poli.nama_poli : 'Belum Dipilih') + '</span></td>' +
-                        tombolAksi(EDIT_URL, 'hapusDokter', d.id) +
-                        '</tr>';
-                });
-            } catch (err) {
-                tampilAlert('error', err.message);
-            }
-        }
+        const tabel = tabelBerhalaman({
+            url: '/admin/dokter',
+            kolom: 7,
+            pesanKosong: 'Belum ada data dokter',
+            cari: 'Cari nama, email, atau No. KTP...',
+            filter: [
+                { nama: 'id_poli', label: 'Semua Poli',
+                  sumber: { url: '/admin/polis?semua=1', nilai: 'id', teks: 'nama_poli' } },
+            ],
+            baris: function (d) {
+                return '<tr class="border-b border-slate-100 hover:bg-slate-50 transition">' +
+                    '<td class="px-6 py-4 font-semibold text-slate-800">' + esc(d.nama) + '</td>' +
+                    '<td class="px-6 py-4">' + esc(d.email) + '</td>' +
+                    '<td class="px-6 py-4">' + esc(d.no_ktp || '-') + '</td>' +
+                    '<td class="px-6 py-4">' + esc(d.no_hp || '-') + '</td>' +
+                    '<td class="px-6 py-4">' + esc(d.alamat || '-') + '</td>' +
+                    '<td class="px-6 py-4"><span class="px-3 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-700">' +
+                        esc(d.poli ? d.poli.nama_poli : 'Belum Dipilih') + '</span></td>' +
+                    tombolAksi(EDIT_URL, 'hapusDokter', d.id) +
+                    '</tr>';
+            },
+        });
 
         // DELETE: DELETE /api/admin/dokter/{id}
         function hapusDokter(id) {
-            hapusData('/admin/dokter/' + id, 'Yakin ingin menghapus dokter ini?', muatData);
+            hapusData('/admin/dokter/' + id, 'Yakin ingin menghapus dokter ini?', tabel.muat);
         }
 
         bacaFlash();
-        muatData();
     </script>
     @endpush
 

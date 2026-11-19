@@ -32,11 +32,10 @@ class AuthController extends Controller
             'no_rm' => date('Ym') . '-' . str_pad($user->id, 3, '0', STR_PAD_LEFT),
         ]);
 
-        return response()->json([
+        return response()->json(array_merge([
             'message' => 'Registrasi berhasil.',
-            'token'   => $user->createToken('api-token')->plainTextToken,
             'user'    => new UserResource($user),
-        ], 201);
+        ], $this->buatToken($user)), 201);
     }
 
     // Login: email + password, mengembalikan token
@@ -53,12 +52,11 @@ class AuthController extends Controller
             return response()->json(['message' => 'Email atau password salah.'], 401);
         }
 
-        return response()->json([
+        return response()->json(array_merge([
             'message' => 'Login berhasil.',
-            'token'   => $user->createToken('api-token')->plainTextToken,
             'role'    => $user->role,
             'user'    => new UserResource($user->load('poli')),
-        ]);
+        ], $this->buatToken($user)));
     }
 
     // Profil user yang sedang login
@@ -68,10 +66,38 @@ class AuthController extends Controller
     }
 
     // Logout: hapus token yang sedang dipakai
+        // Logout: hapus token yang sedang dipakai
     public function logout(Request $request)
     {
-        $request->user()->currentAccessToken()->delete();
+        $token = $request->user()->currentAccessToken();
+
+        // Pada request dari halaman web (sesi) tidak ada token yang perlu dihapus
+        if ($token && method_exists($token, 'delete')) {
+            $token->delete();
+        }
 
         return response()->json(['message' => 'Logout berhasil.']);
+    }
+
+    // Logout dari semua perangkat: hapus seluruh token milik user
+    public function logoutSemua(Request $request)
+    {
+        $request->user()->tokens()->delete();
+
+        return response()->json(['message' => 'Semua token telah dicabut.']);
+    }
+
+    // Membuat token baru berlaku 24 jam, dan mencabut token lama milik user
+    private function buatToken(User $user): array
+    {
+        $user->tokens()->delete();   // satu token aktif per pengguna
+
+        $kedaluwarsa = now()->addHours(24);
+        $token = $user->createToken('api-token', ['*'], $kedaluwarsa);
+
+        return [
+            'token'      => $token->plainTextToken,
+            'expires_at' => $kedaluwarsa->toDateTimeString(),
+        ];
     }
 }

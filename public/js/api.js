@@ -211,3 +211,182 @@ function formatTanggal(teks, denganJam) {
     const jam = String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
     return tgl + ' ' + jam;
 }
+
+// ===== TABEL BERHALAMAN: pencarian + filter + pagination, semuanya lewat API =====
+// opsi:
+//   url         : endpoint API, mis. '/admin/obat'
+//   tbody       : id elemen <tbody> (default 'data-body')
+//   kolom       : jumlah kolom tabel (untuk baris kosong)
+//   pesanKosong : teks saat data kosong
+//   cari        : placeholder kotak pencarian (hilangkan jika tidak perlu pencarian)
+//   filter      : [{ nama, label, jenis, pilihan, sumber }]
+//                   jenis 'select' (default): pilihan [{nilai, teks}] atau sumber {url, nilai, teks}
+//                   jenis 'angka' atau 'tanggal': kolom isian biasa
+//   baris       : function (item, nomor) yang mengembalikan string <tr>
+//   setelahMuat : (opsional) function (respons) dipanggil setelah data tampil
+// Elemen yang dibutuhkan di halaman: <div id="filter-bar"></div> dan <div id="pagination"></div>
+// Mengembalikan { muat }, untuk memuat ulang data (mis. setelah hapus)
+function tabelBerhalaman(opsi) {
+    const tbody = document.getElementById(opsi.tbody || 'data-body');
+    const barFilter = document.getElementById('filter-bar');
+    const boxHalaman = document.getElementById('pagination');
+
+    const param = { page: 1, per_page: 10 };
+    let timer = null;
+
+    // ----- Memuat data dari API -----
+    async function muat() {
+        const query = new URLSearchParams();
+        Object.keys(param).forEach(function (kunci) {
+            if (param[kunci] !== '' && param[kunci] !== null && param[kunci] !== undefined) {
+                query.set(kunci, param[kunci]);
+            }
+        });
+
+        try {
+            const res = await api(opsi.url + (opsi.url.indexOf('?') === -1 ? '?' : '&') + query.toString());
+            const meta = res.meta;
+
+            // Halaman kosong karena data terakhir dihapus: mundur ke halaman terakhir
+            if (res.data.length === 0 && meta.current_page > 1) {
+                param.page = meta.last_page > 0 ? meta.last_page : 1;
+                return muat();
+            }
+
+            if (res.data.length === 0) {
+                tbody.innerHTML =
+                    '<tr><td colspan="' + opsi.kolom + '" class="text-center py-12 text-slate-400">' +
+                    '<i class="fas fa-inbox text-3xl mb-3 block"></i>' + esc(opsi.pesanKosong) + '</td></tr>';
+            } else {
+                tbody.innerHTML = res.data.map(function (item, i) {
+                    return opsi.baris(item, meta.from + i);
+                }).join('');
+            }
+
+            gambarHalaman(meta);
+            if (opsi.setelahMuat) opsi.setelahMuat(res);
+        } catch (err) {
+            tampilAlert('error', err.message);
+        }
+    }
+
+    // ----- Kontrol halaman -----
+    function gambarHalaman(meta) {
+        if (!boxHalaman) return;
+
+        if (meta.total === 0) {
+            boxHalaman.innerHTML = '';
+            return;
+        }
+
+        const pilihanPer = [5, 10, 25, 50, 100].map(function (n) {
+            return '<option value="' + n + '"' + (n === meta.per_page ? ' selected' : '') + '>' + n + ' / halaman</option>';
+        }).join('');
+
+        boxHalaman.innerHTML =
+            '<div class="flex flex-wrap items-center justify-between gap-3 px-2 py-4 text-sm text-slate-500">' +
+            '<span>Menampilkan ' + meta.from + '–' + meta.to + ' dari ' + meta.total + ' data</span>' +
+            '<div class="flex items-center gap-3">' +
+            '<select id="per-halaman" class="select select-bordered select-sm">' + pilihanPer + '</select>' +
+            '<div class="join">' +
+            '<button type="button" data-halaman="' + (meta.current_page - 1) + '" class="join-item btn btn-sm"' +
+                (meta.current_page <= 1 ? ' disabled' : '') + '>«</button>' +
+            '<button type="button" class="join-item btn btn-sm pointer-events-none">Halaman ' +
+                meta.current_page + ' / ' + meta.last_page + '</button>' +
+            '<button type="button" data-halaman="' + (meta.current_page + 1) + '" class="join-item btn btn-sm"' +
+                (meta.current_page >= meta.last_page ? ' disabled' : '') + '>»</button>' +
+            '</div></div></div>';
+
+        boxHalaman.querySelectorAll('[data-halaman]').forEach(function (tombol) {
+            tombol.addEventListener('click', function () {
+                param.page = parseInt(tombol.getAttribute('data-halaman'));
+                muat();
+            });
+        });
+
+        document.getElementById('per-halaman').addEventListener('change', function () {
+            param.per_page = parseInt(this.value);
+            param.page = 1;
+            muat();
+        });
+    }
+
+    // ----- Kotak pencarian dan filter -----
+    function gambarFilter() {
+        if (!barFilter) return;
+        if (!opsi.cari && !(opsi.filter && opsi.filter.length)) return;
+
+        let html = '<div class="flex flex-wrap items-end gap-3 mb-4">';
+
+        if (opsi.cari) {
+            html += '<div class="flex-1 min-w-[200px]">' +
+                '<input type="search" id="kotak-cari" placeholder="' + esc(opsi.cari) + '" class="input input-bordered w-full"></div>';
+        }
+
+        (opsi.filter || []).forEach(function (f) {
+            if (f.jenis === 'angka' || f.jenis === 'tanggal') {
+                html += '<div><label class="block text-xs text-slate-500 mb-1">' + esc(f.label) + '</label>' +
+                    '<input type="' + (f.jenis === 'angka' ? 'number' : 'date') + '" data-filter="' + f.nama + '" ' +
+                    'class="input input-bordered"' + (f.jenis === 'angka' ? ' min="0"' : '') + '></div>';
+            } else {
+                html += '<div><select data-filter="' + f.nama + '" class="select select-bordered">' +
+                    '<option value="">' + esc(f.label) + '</option>' +
+                    (f.pilihan || []).map(function (p) {
+                        return '<option value="' + esc(p.nilai) + '">' + esc(p.teks) + '</option>';
+                    }).join('') + '</select></div>';
+            }
+        });
+
+        html += '<button type="button" id="reset-filter" class="btn btn-ghost bg-slate-100">Reset</button></div>';
+        barFilter.innerHTML = html;
+
+        // Pencarian dengan jeda 400 ms agar tidak memanggil API di setiap ketikan
+        const kotak = document.getElementById('kotak-cari');
+        if (kotak) {
+            kotak.addEventListener('input', function () {
+                clearTimeout(timer);
+                timer = setTimeout(function () {
+                    param.search = kotak.value.trim();
+                    param.page = 1;
+                    muat();
+                }, 400);
+            });
+        }
+
+        // Filter: setiap perubahan memuat ulang dari halaman 1
+        barFilter.querySelectorAll('[data-filter]').forEach(function (el) {
+            el.addEventListener('change', function () {
+                param[el.getAttribute('data-filter')] = el.value;
+                param.page = 1;
+                muat();
+            });
+        });
+
+        // Reset: kosongkan semua pencarian dan filter
+        document.getElementById('reset-filter').addEventListener('click', function () {
+            Object.keys(param).forEach(function (kunci) {
+                if (kunci !== 'page' && kunci !== 'per_page') delete param[kunci];
+            });
+            param.page = 1;
+            if (kotak) kotak.value = '';
+            barFilter.querySelectorAll('[data-filter]').forEach(function (el) { el.value = ''; });
+            muat();
+        });
+
+        // Pilihan filter yang diambil dari API (mis. daftar poli)
+        (opsi.filter || []).forEach(function (f) {
+            if (!f.sumber) return;
+            api(f.sumber.url).then(function (res) {
+                const select = barFilter.querySelector('[data-filter="' + f.nama + '"]');
+                isiDropdown(select, res.data, f.sumber.nilai, f.sumber.teks);
+            }).catch(function (err) {
+                tampilAlert('error', err.message);
+            });
+        });
+    }
+
+    gambarFilter();
+    muat();
+
+    return { muat: muat };
+}
