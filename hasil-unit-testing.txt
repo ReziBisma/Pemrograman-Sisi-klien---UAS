@@ -1,0 +1,134 @@
+
+   PASS  Tests\Unit\ExampleTest
+  Ô£ô that true is true                                                                                                                                                                      0.01s  
+
+   PASS  Tests\Unit\PeriksaTest
+  Ô£ô jasa dokter tetap 150000                                                                                                                                                               0.59s  
+  Ô£ô total obat adalah biaya dikurangi jasa dokter                                                                                                                                          0.03s  
+  Ô£ô total obat tidak pernah negatif                                                                                                                                                        0.03s  
+  Ô£ô kunci pembayaran berbeda untuk tiap periksa                                                                                                                                            0.03s  
+  Ô£ô status pembayaran dibaca dari cache                                                                                                                                                    0.03s  
+
+   PASS  Tests\Feature\Api\Admin\DokterTest
+  Ô£ô tambah dokter memaksa role dokter dan menghash password                                                                                                                                0.24s  
+  Ô£ô validasi tambah dokter                                                                                                                                                                 0.06s  
+  Ô£ô daftar dokter berhalaman                                                                                                                                                               0.07s  
+  Ô£ô pencarian dokter tidak memuat pasien                                                                                                                                                   0.04s  
+  Ô£ô filter dokter berdasarkan poli                                                                                                                                                         0.04s  
+  Ô£ô ubah dokter tanpa password tidak mengganti password                                                                                                                                    0.05s  
+  Ô£ô ubah dokter dengan password baru                                                                                                                                                       0.06s  
+  Ô£ô hapus dokter                                                                                                                                                                           0.04s  
+  Ô£ô pasien tidak bisa diakses lewat endpoint dokter                                                                                                                                        0.06s  
+
+   PASS  Tests\Feature\Api\Admin\ObatTest
+  Ô£ô daftar obat berhalaman dan dapat dicari                                                                                                                                                0.08s  
+  Ô£ô filter rentang harga                                                                                                                                                                   0.07s  
+  Ô£ô tambah obat                                                                                                                                                                            0.06s  
+  Ô£ô validasi obat                                                                                                                                                                          0.05s  
+  Ô£ô ubah obat                                                                                                                                                                              0.04s  
+  Ô£ô hapus obat dan obat tidak ditemukan                                                                                                                                                    0.05s  
+
+   PASS  Tests\Feature\Api\Admin\PasienTest
+  Ô£ô tambah pasien mendapat role pasien dan no rm                                                                                                                                           0.05s  
+  Ô£ô validasi tambah pasien                                                                                                                                                                 0.05s  
+  Ô£ô daftar pasien berhalaman dan hanya memuat pasien                                                                                                                                       0.05s  
+  Ô£ô pencarian pasien berdasarkan no rm                                                                                                                                                     0.06s  
+  Ô£ô ubah pasien tanpa password tidak mengganti password                                                                                                                                    0.05s  
+  Ô£ô hapus pasien                                                                                                                                                                           0.05s  
+  Ô£ô dokter tidak bisa diakses lewat endpoint pasien                                                                                                                                        0.04s  
+
+   PASS  Tests\Feature\Api\Admin\PoliTest
+  Ô£ô daftar poli berhalaman                                                                                                                                                                 0.06s  
+  Ô£ô per page dibatasi maksimal 100                                                                                                                                                         0.04s  
+  Ô£ô parameter semua mengembalikan seluruh data tanpa pagination                                                                                                                            0.06s  
+  Ô£ô pencarian poli berdasarkan nama dan keterangan                                                                                                                                         0.05s  
+  Ô£ô tambah poli                                                                                                                                                                            0.04s  
+  Ô£ô nama poli wajib diisi                                                                                                                                                                  0.04s  
+  Ô£ô nama poli maksimal 25 karakter                                                                                                                                                         0.03s  
+  Ô£ô lihat satu poli                                                                                                                                                                        0.03s  
+  Ô£ô poli yang tidak ada menghasilkan 404                                                                                                                                                   0.03s  
+  Ô£ô ubah poli                                                                                                                                                                              0.03s  
+  Ô£ô hapus poli                                                                                                                                                                             0.03s  
+
+   PASS  Tests\Feature\Api\AuthTest
+  Ô£ô registrasi membuat pasien dengan token dan no rm                                                                                                                                       0.05s  
+  Ô£ô registrasi tidak bisa memilih role admin                                                                                                                                               0.04s  
+  Ô£ô registrasi menolak email yang sudah dipakai                                                                                                                                            0.03s  
+  Ô£ô registrasi menolak data tidak lengkap dan password pendek                                                                                                                              0.04s  
+  Ô£ô login berhasil mengembalikan token dan peran                                                                                                                                           0.04s  
+  Ô£ô login gagal jika password salah                                                                                                                                                        0.04s  
+  Ô£ô login gagal jika email tidak terdaftar                                                                                                                                                 0.03s  
+  Ô£ô login menolak input kosong                                                                                                                                                             0.03s  
+  Ô£ô endpoint terproteksi menolak request tanpa token                                                                                                                                       0.04s  
+  Ô£ô me mengembalikan profil user yang login                                                                                                                                                0.03s  
+  Ô£ô logout mencabut token yang dipakai                                                                                                                                                     0.04s  
+  Ô£ô login memberi token berlaku 24 jam                                                                                                                                                     0.03s  
+  Ô£ô login ulang mencabut token lama                                                                                                                                                        0.04s  
+  Ô£ô token kedaluwarsa ditolak                                                                                                                                                              0.03s  
+  Ô£ô logout semua mencabut seluruh token                                                                                                                                                    0.04s  
+
+   PASS  Tests\Feature\Api\Dokter\JadwalPeriksaTest
+  Ô£ô tambah jadwal memakai id dokter dari login                                                                                                                                             0.05s  
+  Ô£ô status bawaan adalah tidak aktif                                                                                                                                                       0.06s  
+  Ô£ô validasi jadwal                                                                                                                                                                        0.05s  
+  Ô£ô daftar hanya memuat jadwal milik dokter yang login                                                                                                                                     0.05s  
+  Ô£ô jadwal diurutkan dari senin sampai minggu                                                                                                                                              0.04s  
+  Ô£ô jadwal berhalaman                                                                                                                                                                      0.05s  
+  Ô£ô filter jadwal berdasarkan hari dan status                                                                                                                                              0.06s  
+  Ô£ô ubah jadwal                                                                                                                                                                            0.06s  
+  Ô£ô ubah tanpa status tidak mengganti status                                                                                                                                               0.04s  
+  Ô£ô hapus jadwal                                                                                                                                                                           0.04s  
+  Ô£ô jadwal dokter lain tidak bisa dilihat diubah atau dihapus                                                                                                                              0.05s  
+
+   PASS  Tests\Feature\Api\Dokter\PeriksaPasienTest
+  Ô£ô antrian hanya memuat pasien pada jadwal dokter ini                                                                                                                                     0.07s  
+  Ô£ô pencarian dan filter status antrian                                                                                                                                                    0.06s  
+  Ô£ô antrian berhalaman dan parameter semua                                                                                                                                                 0.06s  
+  Ô£ô dokter dapat mengambil daftar obat tanpa pagination                                                                                                                                    0.05s  
+  Ô£ô simpan pemeriksaan dengan resep obat dan biaya dihitung server                                                                                                                         0.05s  
+  Ô£ô pemeriksaan tanpa obat hanya dikenai jasa dokter                                                                                                                                       0.04s  
+  Ô£ô obat yang sama dua kali dihitung sekali                                                                                                                                                0.04s  
+  Ô£ô pasien tidak bisa diperiksa dua kali                                                                                                                                                   0.05s  
+  Ô£ô dokter tidak bisa memeriksa pendaftaran dokter lain                                                                                                                                    0.06s  
+  Ô£ô validasi pemeriksaan                                                                                                                                                                   0.06s  
+  Ô£ô riwayat memuat antrian keluhan dan biaya                                                                                                                                               0.04s  
+  Ô£ô detail riwayat memuat obat                                                                                                                                                             0.05s  
+  Ô£ô riwayat dokter lain tidak bisa dilihat                                                                                                                                                 0.05s  
+  Ô£ô riwayat dapat dicari dan difilter tanggal                                                                                                                                              0.06s  
+
+   PASS  Tests\Feature\Api\Pasien\PendaftaranTest
+  Ô£ô data form pendaftaran memuat poli dan jadwal                                                                                                                                           0.06s  
+  Ô£ô daftar ke jadwal memakai id pasien dari login                                                                                                                                          0.05s  
+  Ô£ô nomor antrian bertambah untuk pasien berikutnya                                                                                                                                        0.05s  
+  Ô£ô validasi pendaftaran                                                                                                                                                                   0.04s  
+  Ô£ô tidak bisa mendaftar dua kali ke jadwal yang sama sebelum diperiksa                                                                                                                    0.06s  
+  Ô£ô riwayat hanya memuat pendaftaran milik sendiri                                                                                                                                         0.06s  
+  Ô£ô riwayat berhalaman dan filter status                                                                                                                                                   0.05s  
+
+   PASS  Tests\Feature\Api\Pasien\TransaksiTest
+  Ô£ô daftar transaksi memuat rincian dan total belum dibayar                                                                                                                                0.05s  
+  Ô£ô hanya transaksi milik sendiri yang tampil                                                                                                                                              0.05s  
+  Ô£ô transaksi berhalaman                                                                                                                                                                   0.08s  
+  Ô£ô bayar transaksi mengubah status menjadi lunas                                                                                                                                          0.07s  
+  Ô£ô transaksi tidak bisa dibayar dua kali                                                                                                                                                  0.05s  
+  Ô£ô validasi metode pembayaran                                                                                                                                                             0.04s  
+  Ô£ô filter status lunas dan belum                                                                                                                                                          0.07s  
+  Ô£ô filter tanggal transaksi                                                                                                                                                               0.05s  
+  Ô£ô transaksi pasien lain tidak bisa dilihat atau dibayar                                                                                                                                  0.04s  
+
+   PASS  Tests\Feature\Api\RoleAccessTest
+  Ô£ô peran yang salah mendapat 403                                                                                                                                                          0.06s  
+  Ô£ô peran yang benar mendapat 200                                                                                                                                                          0.05s  
+  Ô£ô semua grup menolak request tanpa login                                                                                                                                                 0.04s  
+
+   PASS  Tests\Feature\Api\ThrottleTest
+  Ô£ô login dibatasi lima percobaan per menit                                                                                                                                                0.05s  
+  Ô£ô api dibatasi 60 request per menit per pengguna                                                                                                                                         0.12s  
+  Ô£ô respons membawa header sisa kuota                                                                                                                                                      0.04s  
+
+   PASS  Tests\Feature\ExampleTest
+  Ô£ô the application returns a successful response                                                                                                                                          0.06s  
+
+  Tests:    102 passed (505 assertions)
+  Duration: 6.17s
+

@@ -41,9 +41,8 @@ class PendaftaranController extends Controller
     {
         $data = $request->validate([
             'id_jadwal' => 'required|exists:jadwal_periksa,id',
-            'keluhan'   => 'nullable|string',
+            'keluhan'   => 'required|string',
         ]);
-
         $pasienId = $request->user()->id;
 
         $masihAktif = DaftarPoli::where('id_pasien', $pasienId)
