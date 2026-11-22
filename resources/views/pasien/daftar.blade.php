@@ -167,7 +167,7 @@
                 tampilAlert('success', 'Berhasil mendaftar ke poli. Nomor antrian Anda: ' + res.data.no_antrian);
                 form.keluhan.value = '';
                 jadwalSelect.value = '';
-                muatRiwayat();
+                tabelRiwayat.muat();
             } catch (err) {
                 if (err.status === 422 && Object.keys(err.errors).length > 0) {
                     tampilErrorForm(err.errors);
@@ -180,7 +180,6 @@
         });
 
         muatForm();
-        muatRiwayat();
     </script>
     @endpush
 </x-layouts.app>
